@@ -1,3 +1,18 @@
+# [0.2.0](https://github.com/sysleaf/git-actions-demo/compare/v0.1.2...v0.2.0) (2019-08-17)
+
+
+### Bug Fixes
+
+* **doc:** correct type in doc ([48205e9](https://github.com/sysleaf/git-actions-demo/commit/48205e9))
+* **login:** login fix issue ([7844702](https://github.com/sysleaf/git-actions-demo/commit/7844702))
+
+
+### Features
+
+* **app:** add feature1 ([bb20f1c](https://github.com/sysleaf/git-actions-demo/commit/bb20f1c))
+* **app:** add feature2 ([9df8c58](https://github.com/sysleaf/git-actions-demo/commit/9df8c58))
+* **app1:** add feature1 ([526dad7](https://github.com/sysleaf/git-actions-demo/commit/526dad7))
+
 # Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
