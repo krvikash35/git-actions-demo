@@ -41,6 +41,7 @@ function App() {
           commita
           issuea
           issueb
+          issuec
         </a>
       </header>
     </div>
