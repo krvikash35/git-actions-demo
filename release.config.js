@@ -7,7 +7,7 @@ module.exports = {
         preset: "conventionalcommits",
         presetConfig: {
           issueUrlFormat: "https://jira.com/browse/BBECOM-{{id}}",
-          issuePrefixes: ['#', 'BBECOM-'],
+          issuePrefixes: ['#', 'BBECOM-', '#BBECOM-'],
         }
       }
     ],
