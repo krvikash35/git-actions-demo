@@ -42,6 +42,7 @@ function App() {
           issuea
           issueb
           issuec
+          issuec
         </a>
       </header>
     </div>
