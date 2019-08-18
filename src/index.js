@@ -14,3 +14,4 @@ serviceWorker.unregister();
 let a  = 'feature4'
 let b = 'feature5'
 let c = 'hotfix-v1.0.0'
+let c = 'feat1'
