@@ -16,37 +16,7 @@ function App() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React App
-          master3
-          feature3
-          feature6
-          commita
-          commitb
-          commitc
-          commitd
-          commite
-          commita
-          commitb
-          commita
-          commita
-          commita
-          
-          commita
-          commita
-          commita
-          commita
-          commita
-          commita
-          commita
-          commita
-          issuea
-          issueb
-          issuec
-          issuec
-          issuec
-
-          
-          issuec
+          feat1
           
         </a>
       </header>
