@@ -17,6 +17,7 @@ function App() {
           rel="noopener noreferrer"
         >
           feat1
+          feat2
           
         </a>
       </header>
