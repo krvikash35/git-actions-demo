@@ -19,6 +19,7 @@ function App() {
           feat1
           feat2
           v2feat1
+          v2feat2
         </a>
       </header>
     </div>
