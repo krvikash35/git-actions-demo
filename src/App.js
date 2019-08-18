@@ -21,6 +21,7 @@ function App() {
           v2feat1
           v2feat2
           v3feat1
+          v2fix1
         </a>
       </header>
     </div>
