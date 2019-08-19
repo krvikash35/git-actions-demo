@@ -24,7 +24,6 @@ function App() {
           v2fix1
           feat1
           feat2
-          feat3
         </a>
       </header>
     </div>
