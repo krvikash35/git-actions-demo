@@ -1,31 +1,16 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import {useStore} from './module/mstore'
 
 function App() {
+  const user = useStore('user')
+  console.log('user', user)
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          feat1
-          feat2
-          v2feat1
-          v2feat2
-          v3feat1
-          v2fix1
-          feat1
-          feat2
-        </a>
-      </header>
+      <div>
+        <button onClick={user.getUsers}>fetch users</button>
+        <button onClick={user.hello}>hello: {user.name}</button>
+        {user.getUsers.data && user.getUsers.data.map(u => (
+          <div onClick={user.getUser.bind(null,u.id)}>{u.name}</div>
+        ))}
     </div>
   );
 }
