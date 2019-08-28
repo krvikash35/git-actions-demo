@@ -6,7 +6,6 @@ const allContexts = {};
 const tokens = {};
 
 function mergeState(state, delta, actionKey) {
-  console.log("props", Object.getOwnPropertyNames(state));
   const deltaState = {};
   const { data, error, ...restDelta } = delta;
   Object.keys(restDelta).forEach(deltaKey => {
@@ -54,7 +53,6 @@ function isObject(data) {
 }
 
 function isAsyncDataState(state, data) {
-  console.log("isayncdata", data, typeof data);
   if (!isObject(data)) return false;
   const sprops = Object.getOwnPropertyNames(state);
   return sprops.some(p => data.hasOwnProperty(p));

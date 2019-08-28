@@ -34,13 +34,6 @@ export function hello(){
 // hello.sync = true;
 
 export function resetAll(){
-    // return {name: 'kumar'}
-    // return {null: null}
-    return new Promise(res => {
-        setTimeout(() => {
-            // return res({name: 'kumar', data: 'resetall', getUsers: [{id: 12, name: 'vikash'}]})
-            return res(s => ({name: 'kumar', data: 'resetall', getUsers: [{id: 12, name: 'vikash'}]}))
-        }, 1000);
-    })
+    return {name: 'kumar'}
 }
-// resetAll.sync=true
+resetAll.sync=true
