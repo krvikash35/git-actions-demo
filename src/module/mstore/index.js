@@ -3,8 +3,10 @@ import axios from "axios";
 
 const allProviders = [];
 const allContexts = {};
+const tokens = {};
 
 function mergeState(state, delta, actionKey) {
+  console.log("props", Object.getOwnPropertyNames(state));
   const deltaState = {};
   const { data, error, ...restDelta } = delta;
   Object.keys(restDelta).forEach(deltaKey => {
@@ -19,14 +21,22 @@ function mergeState(state, delta, actionKey) {
       }
     }
   });
-  if (data) {
-    deltaState[actionKey] = { data, loading: false, error: null };
-  } else if (error) {
-    deltaState[actionKey] = {
-      data: state[actionKey].data,
-      loading: false,
-      error
-    };
+  if (actionKey) {
+    if (data) {
+      deltaState[actionKey] = { data, loading: false, error: null };
+    } else if (error) {
+      deltaState[actionKey] = {
+        data: state[actionKey].data,
+        loading: false,
+        error
+      };
+    } else {
+      deltaState[actionKey] = {
+        data: state[actionKey].data,
+        loading: false,
+        error: state[actionKey].error
+      };
+    }
   }
   return deltaState;
 }
@@ -37,6 +47,17 @@ function isAction(storeAttr) {
 
 function isSyncAction(storeAttr) {
   return isAction(storeAttr) && storeAttr.sync === true;
+}
+
+function isObject(data) {
+  return data !== null && typeof data === "object";
+}
+
+function isAsyncDataState(state, data) {
+  console.log("isayncdata", data, typeof data);
+  if (!isObject(data)) return false;
+  const sprops = Object.getOwnPropertyNames(state);
+  return sprops.some(p => data.hasOwnProperty(p));
 }
 
 function initStoreState(store) {
@@ -52,7 +73,7 @@ function initStoreState(store) {
   return state;
 }
 
-function setupStoreProviderValue(store, state, setState, stateRef) {
+function setupStoreProviderValue(store, state, setState, stateRef, storeName) {
   const value = {};
   Object.keys(store).forEach(storeAttrName => {
     const storeAttr = store[storeAttrName];
@@ -60,32 +81,31 @@ function setupStoreProviderValue(store, state, setState, stateRef) {
       value[storeAttrName] = state[storeAttrName];
     } else if (isSyncAction(storeAttr)) {
       value[storeAttrName] = (...p) => {
-        let stateChanges = storeAttr(...p, stateRef);
-        if (isAction(stateChanges)) {
-          stateChanges = stateChanges(stateRef.current);
+        let result = storeAttr(...p);
+        if (isAction(result)) {
+          result = result(stateRef.current);
         }
-        const newState = mergeState(stateRef.current, stateChanges);
+        if (!isObject(result)) return;
+        const newState = mergeState(stateRef.current, result);
         setState(s => ({ ...s, ...newState }));
       };
     } else {
       value[storeAttrName] = async (...p) => {
+        value[storeAttrName].cancel();
         setState({
           ...state,
           [storeAttrName]: { ...state[storeAttrName], loading: true }
         });
         try {
-          const promise = storeAttr(...p, stateRef);
-          //todo setup axios cancel token
-          //todo set state and data
-          const stateUpdater = await promise;
-          // console.log('resolve promise', stateUpdater)
-          // delete state[storeAttrName]
-          return
-          if (isAction(stateUpdater)) {
-            const stateChanges = stateUpdater(stateRef.current);
+          const promise = storeAttr(...p);
+          let result = await promise;
+          if (isAction(result)) {
+            result = result(stateRef.current);
+          }
+          if (isAsyncDataState(state, result)) {
             const newState = mergeState(
               stateRef.current,
-              stateChanges,
+              result,
               storeAttrName
             );
             setState(s => ({ ...s, ...newState }));
@@ -94,22 +114,16 @@ function setupStoreProviderValue(store, state, setState, stateRef) {
               ...s,
               [storeAttrName]: {
                 loading: false,
-                data: stateUpdater,
+                data: result,
                 error: null
               }
             }));
           }
         } catch (stateUpdater) {
           if (isAction(stateUpdater)) {
-            const stateChanges = stateUpdater(stateRef.current);
-            const newState = mergeState(
-              stateRef.current,
-              stateChanges,
-              storeAttrName
-            );
-            setState(s => ({ ...s, ...newState }));
-          } else {
-            //handle unhandled axios error
+            stateUpdater = stateUpdater(stateRef.current);
+          }
+          if (stateUpdater.config) {
             if (axios.isCancel(stateUpdater)) {
               setState(s => ({
                 ...s,
@@ -131,6 +145,24 @@ function setupStoreProviderValue(store, state, setState, stateRef) {
                 [storeAttrName]: { ...s[storeAttrName], loading: false, error }
               }));
             }
+          } else {
+            if (isAsyncDataState(state, stateUpdater)) {
+              const newState = mergeState(
+                stateRef.current,
+                stateUpdater,
+                storeAttrName
+              );
+              setState(s => ({ ...s, ...newState }));
+            } else {
+              setState(s => ({
+                ...s,
+                [storeAttrName]: {
+                  loading: false,
+                  data: s[storeAttrName].data,
+                  error: stateUpdater
+                }
+              }));
+            }
           }
         }
       };
@@ -143,12 +175,22 @@ function setupStoreProviderValue(store, state, setState, stateRef) {
           [storeAttrName]: { data: null, error: null, loading: false }
         }));
       };
+      value[storeAttrName].cancel = () => {
+        const cancel = tokens[storeName][storeAttrName];
+        if (cancel) {
+          cancel();
+          tokens[storeName][storeAttrName] = null;
+        }
+      };
     }
   });
   return value;
 }
 
 export function useStore(storeName) {
+  const storeContext = allContexts[storeName];
+  if (!storeContext)
+    throw new Error(`useStore: store with name ${storeName} not found`);
   const store = useContext(allContexts[storeName]);
   return store;
 }
@@ -158,7 +200,7 @@ export function createStore(stores) {
     const store = stores[storeName];
     const context = createContext();
     context.displayName = storeName;
-
+    tokens[storeName] = {};
     function Provider(props) {
       const initialState = initStoreState(store);
       const [state, setState] = useState(initialState);
@@ -168,7 +210,8 @@ export function createStore(stores) {
         store,
         state,
         setState,
-        stateRef
+        stateRef,
+        storeName
       );
       return (
         <context.Provider value={providerValue}>
@@ -181,7 +224,6 @@ export function createStore(stores) {
     allProviders.push(Provider);
     allContexts[storeName] = context;
   });
-
   return function Store(props) {
     let store = "";
     allProviders.forEach((P, index) => {
@@ -195,4 +237,12 @@ export function createStore(stores) {
   };
 }
 
-export function setupCancelToken(axiosConfig, actionFunName) {}
+export function setupCancelToken(storeName, actionFunName, axiosConfig) {
+  if (!tokens[storeName])
+    return console.warn(
+      `setupCancelToken: store with name ${storeName} not found`
+    );
+  const source = axios.CancelToken.source();
+  axiosConfig.cancelToken = source.token;
+  tokens[storeName][actionFunName] = source.cancel;
+}
